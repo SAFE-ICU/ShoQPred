@@ -480,7 +480,7 @@ def predict(x):
     model = generate_model_2()
     adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
-    model.load_weights("weights-attention-lstm-model_0.hdf5")
+    model.load_weights("weights-lstm7.5hr-loop-model_0.hdf5")
     global graph
     graph = tf.get_default_graph()
     with graph.as_default():
