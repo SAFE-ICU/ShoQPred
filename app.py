@@ -124,12 +124,38 @@ def start():
 
 @app.route("/predict", methods=['GET', 'POST'])
 def predict():
-    if pred_time == "4.5" and model == 'dn':
-        if flag == "file_upload" or flag == "folder_upload":
-            df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], var))
-            df = df.loc[:, ~df.columns.str.contains('Unnamed')]
-            return render_template("pages/classification.html", data_frame=df.to_html())
-        return render_template("pages/startModelling.html")
+    @app.route("/prediction")
+def prediction():
+    if model == 'dn':
+        array1 = np.load(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
+        # print(array1)
+        x = np.pad(array1, ((0, 0), (7, 7), (7, 7), (0, 0)), mode='constant')
+        img_height = 30
+        img_width = 30
+        mean_calc1 = np.load('mean_shock_image_mimic.npy')
+        std_calc1 = np.load('std_shock_image_mimic.npy')
+
+        x -= mean_calc1
+        # Apply featurewise_std_normalization to test-data with statistics from train data
+        x /= (std_calc1 + k_backend.epsilon())
+
+        predicted_output = SubDirectory.densenet_predictions.predict(x)
+        filename = dn_filename
+        # new_data = pd.DataFrame(columns=['Patient ID', 'Predicted Label'])
+        # new_data["Patient ID"] = filename
+        # new_data["Predicted Label"] = predicted_output
+        new_data = pd.DataFrame({"Patient ID ": [filename],
+                                 " Predicted Label": [predicted_output]})
+        print(new_data)
+        # new_data = new_data.append({filename: predicted_output})
+        global result
+        result = "prediction_result.csv"
+        new_data.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
+        return render_template("densenet_prediction.html", result=new_data.to_html())
+
+    df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
+    df = df.loc[:, ~df.columns.str.contains('Unnamed')]
+    data1 = df.copy()
 
 
 @app.route('/login')
