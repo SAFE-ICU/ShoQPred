@@ -53,6 +53,7 @@ FLASK_DEBUG = 1
 
 # flag is empty for folder upload and is equal to file_upload for single file upload
 flag = ""
+pre_var = ""
 var = ""
 fileFeatures = ""
 result = ""
@@ -124,8 +125,6 @@ def start():
 
 @app.route("/predict", methods=['GET', 'POST'])
 def predict():
-    @app.route("/prediction")
-def prediction():
     if model == 'dn':
         array1 = np.load(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
         # print(array1)
