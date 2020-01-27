@@ -11,6 +11,8 @@ from logging import Formatter, FileHandler
 
 import numpy as np
 import pandas as pd
+import mscripts.script
+import mscripts.densenet_predictions
 from flask import Flask, request, render_template
 from flask import send_from_directory
 from werkzeug.utils import secure_filename
@@ -146,12 +148,23 @@ def showClassification():
             df = df.loc[:, ~df.columns.str.contains('Unnamed')]
             return render_template("pages/densenet_prediction.html", result=df.to_html())
         return render_template("pages/densenet_prediction.html")
-    if model == "rf":
-        if result == "prediction_result.csv":
-            df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
-            df = df.loc[:, ~df.columns.str.contains('Unnamed')]
-            return render_template("pages/classification.html", result=df.to_html())
-        return render_template("pages/classification.html")
+
+@app.route("/pre_process")
+def pre_process():
+    global pre_var
+    if model == 'dn':
+        df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], var))
+        df = df.loc[:, ~df.columns.str.contains('Unnamed')]
+
+        # do snake representation via snake
+        array_snake = mscripts.script.snake(df)
+
+        pre_var = "Processed_Dataset.npy"
+        np.save(os.path.join(app.config['UPLOAD_FOLDER'], pre_var), array_snake)
+        return render_template("pages/process_snake.html", array_snake=array_snake)
+    if model == "lstm":
+        pass
+
 
 
 @app.route("/predict", methods=['GET', 'POST'])
@@ -307,7 +320,7 @@ def upload_file():
         normal_file_data_frame.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         global flag
         flag = "file_upload"
-        return render_template("startDensenets.html", data_frame=normal_file_data_frame.to_html())
+        return render_template("pages/startDensenets.html", data_frame=normal_file_data_frame.to_html())
 
 
 @app.route('/uploads/<filename>')
@@ -354,10 +367,6 @@ def upload_files_with_age_gender():
             # Creating a list of the series':
             if to_predict == 'shock':
                 list_of_columns = [hr_column, resp_column, spo2_column, final_abp_sys_column, final_abp_dias_column]
-            elif to_predict == 'ahe':
-                list_of_columns = [hr_column, resp_column, spo2_column, final_abp_sys_column]
-            elif to_predict == 'los':
-                list_of_columns = [hr_column, resp_column, spo2_column, final_abp_sys_column]
 
             data3 = pd.DataFrame(data=list_of_columns).T
 
@@ -411,7 +420,7 @@ def upload_files_with_age_gender():
         filename = "concatenated_dataset.csv"
         var = filename
         normal_file_data_frame.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return render_template("startModelling.html", data_frame=normal_file_data_frame.to_html())
+        return render_template("pages/startModelling.html", data_frame=normal_file_data_frame.to_html())
 
 
 # for uploading files without gender & age
@@ -475,7 +484,7 @@ def upload_folder():
         filename = "concatenated_dataset.csv"
         var = filename
         normal_file_data_frame.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return render_template("startModelling.html", data_frame=normal_file_data_frame.to_html())
+        return render_template("pages/startModelling.html", data_frame=normal_file_data_frame.to_html())
 
 
 ### Download
@@ -517,7 +526,7 @@ def prediction():
         global result
         result = "prediction_result.csv"
         new_data.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
-        return render_template("densenet_prediction.html", result=new_data.to_html())
+        return render_template("pages/densenet_prediction.html", result=new_data.to_html())
 
 
 # ----------------------------------------------------------------------------#
