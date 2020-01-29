@@ -65,7 +65,7 @@ model = ""
 dn_filename = ""
 age_column = []
 gender_column = []
-model_dict = {"4.5": "dn"}
+model_dict = {"3": "lstm", "4.5": "dn", "6": "dn", "7.5": "lstm", "9": "lstm", "4.5": "dn"}
 
 
 def allowed_file(filename):
