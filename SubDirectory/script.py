@@ -79,3 +79,8 @@ def snake(var):
     x = x.reshape(-1, 16, 16, 5)
 
     return x
+
+def lstmtensor(var):
+    cols = ['X.HR.', 'X.RESP.', 'X.SpO2.', 'final_abp_sys', 'final_abp_dias']
+    data = var
+    return data.T

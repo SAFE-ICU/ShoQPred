@@ -118,7 +118,14 @@ def start():
         model = model_dict[pred_time]
         print(request)
 
-    if pred_time == "4.5" and model == 'dn':
+    if model == 'dn':
+        if flag == "file_upload" or flag == "folder_upload":
+            df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], var))
+            df = df.loc[:, ~df.columns.str.contains('Unnamed')]
+            return render_template("pages/startDensenets.html", data_frame=df.to_html())
+        return render_template("pages/startDensenets.html")
+
+    if model == 'lstm':
         if flag == "file_upload" or flag == "folder_upload":
             df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], var))
             df = df.loc[:, ~df.columns.str.contains('Unnamed')]
@@ -134,15 +141,24 @@ def showPreProcessing():
             df = df.loc[:, ~df.columns.str.contains('Unnamed')]
             return render_template("pages/process_snake.html", data_frame=df.to_html())
         return render_template("pages/process_snake.html")
-    if pre_var == "Processed_Dataset.csv" and model == "rf":
-        df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
-        df = df.loc[:, ~df.columns.str.contains('Unnamed')]
-        return render_template("pages/pre_processing.html", data_frame=df.to_html())
-    return render_template("pages/pre_processing.html")
+
+    if model == 'lstm':
+        if pre_var == "Processed_Dataset.npy":
+            df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
+            df = df.loc[:, ~df.columns.str.contains('Unnamed')]
+            return render_template("pages/process_snake.html", data_frame=df.to_html())
+        return render_template("pages/process_snake.html")
+
 
 @app.route("/showClassification", methods=['GET', 'POST'])
 def showClassification():
     if model == 'dn':
+        if result == "prediction_result.csv":
+            df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
+            df = df.loc[:, ~df.columns.str.contains('Unnamed')]
+            return render_template("pages/densenet_prediction.html", result=df.to_html())
+        return render_template("pages/densenet_prediction.html")
+    if model == 'lstm':
         if result == "prediction_result.csv":
             df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
             df = df.loc[:, ~df.columns.str.contains('Unnamed')]
@@ -163,7 +179,15 @@ def pre_process():
         np.save(os.path.join(app.config['UPLOAD_FOLDER'], pre_var), array_snake)
         return render_template("pages/process_snake.html", array_snake=array_snake)
     if model == "lstm":
-        pass
+        df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], var))
+        df = df.loc[:, ~df.columns.str.contains('Unnamed')]
+
+        # do snake representation via snake
+        array_tesnor = mscripts.script.lstmtensor(df)
+
+        pre_var = "Processed_Dataset.npy"
+        np.save(os.path.join(app.config['UPLOAD_FOLDER'], pre_var), array_tesnor)
+        return render_template("pages/process_snake.html", array_snake=array_tesnor)
 
 
 
@@ -183,7 +207,7 @@ def predict():
         # Apply featurewise_std_normalization to test-data with statistics from train data
         x /= (std_calc1 + k_backend.epsilon())
 
-        predicted_output = SubDirectory.densenet_predictions.predict(x)
+        predicted_output = mscripts.densenet_predictions.predict(x)
         filename = dn_filename
         # new_data = pd.DataFrame(columns=['Patient ID', 'Predicted Label'])
         # new_data["Patient ID"] = filename
