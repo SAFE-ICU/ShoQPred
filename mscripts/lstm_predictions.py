@@ -1,7 +1,11 @@
 from __future__ import absolute_import
 import numpy as np
 
+import keras
+import tensorflow as tf
 from keras import backend as K
+from keras.models import *
+from keras.layers import *
 from keras import activations
 from keras import initializers
 from keras import regularizers
@@ -476,11 +480,30 @@ def generate_model_2():
 
     return model
 
-def predict(x):
+
+def squeeze_excite_block(input):
+    ''' Create a squeeze-excite block
+    Args:
+        input: input tensor
+        filters: number of output filters
+        k: width factor
+    Returns: a keras tensor
+    '''
+    filters = input._keras_shape[-1] # channel_axis = -1 for TF
+
+    se = GlobalAveragePooling1D()(input)
+    se = Reshape((1, filters))(se)
+    se = Dense(filters // 16,  activation='relu', kernel_initializer='he_normal', use_bias=False)(se)
+    se = Dense(filters, activation='sigmoid', kernel_initializer='he_normal', use_bias=False)(se)
+    se = multiply([input, se])
+    return se
+
+def predict(x,pred_time):
     model = generate_model_2()
     adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
-    model.load_weights("weights-attention-lstm-model_0.hdf5")
+    # model.load_weights('weights/Shock_'+pred_time+'hr_mlfcn/weights-lstm'+pred_time+'hr-loop-model_0.hdf5')
+    model.load_weights('weights-lstm'+str(3)+'hr-loop-model_0.hdf5')
     global graph
     graph = tf.get_default_graph()
     with graph.as_default():

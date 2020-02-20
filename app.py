@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import mscripts.script
 import mscripts.densenet_predictions
+import mscripts.lstm_predictions
 from flask import Flask, request, render_template
 from flask import send_from_directory
 from werkzeug.utils import secure_filename
@@ -65,7 +66,7 @@ model = ""
 dn_filename = ""
 age_column = []
 gender_column = []
-model_dict = {"3": "lstm", "4.5": "dn", "6": "dn", "7.5": "lstm", "9": "lstm", "4.5": "dn"}
+model_dict = {"3": "lstm", "4.5": "snake-dn", "6": "hilbert-dn", "7.5": "lstm", "9": "lstm", "12": "hilbert-dn"}
 
 
 def allowed_file(filename):
@@ -118,7 +119,7 @@ def start():
         model = model_dict[pred_time]
         print(request)
 
-    if model == 'dn':
+    if model == 'snake-dn':
         if flag == "file_upload" or flag == "folder_upload":
             df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], var))
             df = df.loc[:, ~df.columns.str.contains('Unnamed')]
@@ -135,7 +136,7 @@ def start():
 
 @app.route("/showPreProcessing", methods=['GET', 'POST'])
 def showPreProcessing():
-    if model == 'dn':
+    if model == 'snake-dn':
         if pre_var == "Processed_Dataset.npy":
             df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
             df = df.loc[:, ~df.columns.str.contains('Unnamed')]
@@ -144,6 +145,7 @@ def showPreProcessing():
 
     if model == 'lstm':
         if pre_var == "Processed_Dataset.npy":
+            print(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
             df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
             df = df.loc[:, ~df.columns.str.contains('Unnamed')]
             return render_template("pages/process_snake.html", data_frame=df.to_html())
@@ -152,7 +154,7 @@ def showPreProcessing():
 
 @app.route("/showClassification", methods=['GET', 'POST'])
 def showClassification():
-    if model == 'dn':
+    if model == 'snake-dn':
         if result == "prediction_result.csv":
             df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
             df = df.loc[:, ~df.columns.str.contains('Unnamed')]
@@ -168,7 +170,7 @@ def showClassification():
 @app.route("/pre_process")
 def pre_process():
     global pre_var
-    if model == 'dn':
+    if model == 'snake-dn':
         df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], var))
         df = df.loc[:, ~df.columns.str.contains('Unnamed')]
 
@@ -180,12 +182,15 @@ def pre_process():
         return render_template("pages/process_snake.html", array_snake=array_snake)
     if model == "lstm":
         df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], var))
+
         df = df.loc[:, ~df.columns.str.contains('Unnamed')]
+        df = df.loc[:, ~df.columns.str.contains('ID')]
 
         # do snake representation via snake
         array_tesnor = mscripts.script.lstmtensor(df)
-
-        pre_var = "Processed_Dataset.npy"
+        # array_tesnor = array_tesnor.loc[:, ~array_tesnor.columns.str.contains('Unnamed')]
+        print(array_tesnor)
+        pre_var = "Processed_Dataset_Snake.npy"
         np.save(os.path.join(app.config['UPLOAD_FOLDER'], pre_var), array_tesnor)
         return render_template("pages/process_snake.html", array_snake=array_tesnor)
 
@@ -194,7 +199,7 @@ def pre_process():
 @app.route("/predict", methods=['GET', 'POST'])
 def predict():
     global result
-    if model == 'dn':
+    if model == 'snake-dn':
         array1 = np.load(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
         # print(array1)
         x = np.pad(array1, ((0, 0), (7, 7), (7, 7), (0, 0)), mode='constant')
@@ -226,10 +231,7 @@ def predict():
 
     if model == 'lstm':
         array1 = np.load(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
-        # print(array1)
-        x = np.pad(array1, ((0, 0), (7, 7), (7, 7), (0, 0)), mode='constant')
-        img_height = 30
-        img_width = 30
+        print(array1)
         mean_calc1 = np.load('mean_shock_image_mimic.npy')
         std_calc1 = np.load('std_shock_image_mimic.npy')
 
@@ -525,14 +527,15 @@ def download_result():
 
 @app.route("/prediction")
 def prediction():
-    if model == 'dn':
+    global result
+    if model == 'snake-dn':
         array1 = np.load(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
         # print(array1)
         x = np.pad(array1, ((0, 0), (7, 7), (7, 7), (0, 0)), mode='constant')
         img_height = 30
         img_width = 30
-        mean_calc1 = np.load('mean_shock_image_mimic.npy')
-        std_calc1 = np.load('std_shock_image_mimic.npy')
+        mean_calc1 = np.load('mean_std/Shock4.5hr/mean_calc4.5hr.csv.npy')
+        std_calc1 = np.load('mean_std/Shock4.5hr/mean_calc4.5hr.csv.npy')
 
         x -= mean_calc1
         # Apply featurewise_std_normalization to test-data with statistics from train data
@@ -548,6 +551,34 @@ def prediction():
         print(new_data)
         # new_data = new_data.append({filename: predicted_output})
         global result
+        result = "prediction_result.csv"
+        new_data.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
+        return render_template("pages/densenet_prediction.html", result=new_data.to_html())
+
+    if model == "lstm":
+        array1 = np.load(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
+
+        # mean_1 = np.load('mean_std/Shock'+pred_time+'hr/mean.npy')
+        # mean_1 = np.load('mean_std/Shock'+pred_time+'hr/mean.npy')
+        # mean_1 = np.load('mean_std/Shock'+pred_time+'hr/mean.npy')
+        # mean_1 = np.load('mean_std/Shock'+pred_time+'hr/mean.npy')
+        # std_calc1 = np.load('mean_std/Shock'+pred_time+'hr/std.npy')
+
+        # x -= mean_calc1
+        # # Apply featurewise_std_normalization to test-data with statistics from train data
+        # x /= (std_calc1 + k_backend.epsilon())
+        x = array1
+        x = np.reshape(x,(1,x.shape[0],x.shape[1]))
+        predicted_output = mscripts.lstm_predictions.predict(x,pred_time)
+        filename = dn_filename
+        # new_data = pd.DataFrame(columns=['Patient ID', 'Predicted Label'])
+        # new_data["Patient ID"] = filename
+        # new_data["Predicted Label"] = predicted_output
+        new_data = pd.DataFrame({"Patient ID ": [filename],
+                                 " Predicted Label": [predicted_output]})
+        print(new_data)
+        # new_data = new_data.append({filename: predicted_output})
+        
         result = "prediction_result.csv"
         new_data.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
         return render_template("pages/densenet_prediction.html", result=new_data.to_html())
