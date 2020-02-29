@@ -503,7 +503,7 @@ def predict(x,pred_time):
     adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
     # model.load_weights('weights/Shock_'+pred_time+'hr_mlfcn/weights-lstm'+pred_time+'hr-loop-model_0.hdf5')
-    model.load_weights('weights-lstm'+str(3)+'hr-loop-model_0.hdf5')
+    model.load_weights('weights/Shock_'+str(pred_time)+'hr_mlfcn/weights-lstm'+str(pred_time)+'hr-loop-model_0.hdf5')
     global graph
     graph = tf.get_default_graph()
     with graph.as_default():
