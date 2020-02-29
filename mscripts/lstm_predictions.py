@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import numpy as np
 
 import keras
+import pickle
 import tensorflow as tf
 from keras import backend as K
 from keras.models import *
@@ -14,6 +15,7 @@ from keras.engine import Layer
 from keras.engine import InputSpec
 from keras.legacy import interfaces
 from keras.layers import Recurrent
+from sklearn.linear_model import LogisticRegression
 
 
 def _time_distributed_dense(x, w, b=None, dropout=None,
@@ -498,12 +500,13 @@ def squeeze_excite_block(input):
     se = multiply([input, se])
     return se
 
-def predict(x,pred_time):
+def predict_old(x,pred_time):
     model = generate_model_2()
     adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
     # model.load_weights('weights/Shock_'+pred_time+'hr_mlfcn/weights-lstm'+pred_time+'hr-loop-model_0.hdf5')
     model.load_weights('weights/Shock_'+str(pred_time)+'hr_mlfcn/weights-lstm'+str(pred_time)+'hr-loop-model_0.hdf5')
+    
     global graph
     graph = tf.get_default_graph()
     with graph.as_default():
@@ -512,3 +515,35 @@ def predict(x,pred_time):
         result = result[0][0]
     print(result)
     return result
+
+def predict(x,pred_time,age,gender):
+    model = generate_model_2()
+    adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
+    # model.load_weights('weights/Shock_'+pred_time+'hr_mlfcn/weights-lstm'+pred_time+'hr-loop-model_0.hdf5')
+    model.load_weights('weights/Shock_'+str(pred_time)+'hr_mlfcn/weights-lstm'+str(pred_time)+'hr-loop-model_0.hdf5')
+    intermediate_layer_model = Model(inputs=model.input, outputs= model.layers[-2].output)
+    # global graph
+    # graph = tf.get_default_graph()
+    # with graph.as_default():
+    #     global result
+    result = intermediate_layer_model.predict(x)
+        # result = result[0][0]
+    print(result,age,gender,result.shape)
+    demo = (int(age),int(gender))
+    demo = np.reshape(demo,(1,2))
+    result = np.concatenate((result, demo), axis = 1)
+
+    print(result)
+
+    # mean_calc1 = np.mean(result, axis=0)
+    # std_calc1 = np.std(result, axis = 0, ddof = 1)
+
+    # result -= mean_calc1
+    # result /= (std_calc1 + K.epsilon())
+
+    print(result,result.shape)
+    with open('weights/Shock_'+str(pred_time)+'hr_mlfcn/mimic+age+gender+final'+str(pred_time)+'hr.pkl', 'rb') as f:
+        clf = pickle.load(f,encoding='latin1')
+    result = clf.predict_proba(result)
+    return result[0,1]

@@ -114,9 +114,14 @@ def start():
         global to_predict
         global model
         global pred_time
+        global age
+        global gender
         to_predict = request.form['to_predict']
         pred_time = request.form['time']
         model = model_dict[pred_time]
+        age = request.form['age']
+        gender = request.form['gender']
+        gender = int(gender)
         print(request)
 
     if model == 'snake-dn':
@@ -596,7 +601,7 @@ def prediction():
 
 
         x = np.reshape(x,(1,x.shape[0],x.shape[1]))
-        predicted_output = mscripts.lstm_predictions.predict(x,pred_time)
+        predicted_output = mscripts.lstm_predictions.predict(x,pred_time,age,gender)
         filename = dn_filename
         # new_data = pd.DataFrame(columns=['Patient ID', 'Predicted Label'])
         # new_data["Patient ID"] = filename
