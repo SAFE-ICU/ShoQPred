@@ -84,3 +84,17 @@ def lstmtensor(var):
     cols = ['X.HR.', 'X.RESP.', 'X.SpO2.', 'final_abp_sys', 'final_abp_dias']
     data = var
     return data.T
+
+def hilbert(df):
+    cols = ['X.HR.', 'X.RESP.', 'X.SpO2.', 'final_abp_sys', 'final_abp_dias']
+    nam = ('hr','rr','spo','sys', 'dia')
+
+    for i in range(len(cols)):
+        print('Savig at','hilbert/'+nam[i]+'.csv')
+        df[cols[i]].to_csv('hilbert/'+nam[i]+'.csv', index=False, header=False)
+
+if __name__=='__main__':
+    df = pd.read_csv('../folder/test.csv')
+    df = df.loc[:, ~df.columns.str.contains('Unnamed')]
+    hilbert(df)
+

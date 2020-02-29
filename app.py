@@ -4,6 +4,7 @@
 
 import keras
 from keras import backend as k_backend
+from keras import backend as K
 import tensorflow
 import logging
 import os
@@ -14,6 +15,7 @@ import pandas as pd
 import mscripts.script
 import mscripts.densenet_predictions
 import mscripts.lstm_predictions
+import mscripts.hilbert_predictions
 from flask import Flask, request, render_template
 from flask import send_from_directory
 from werkzeug.utils import secure_filename
@@ -138,6 +140,12 @@ def start():
             return render_template("pages/startDensenets.html", data_frame=df.to_html())
         return render_template("pages/startDensenets.html")
 
+    if model == 'hilbert-dn':
+        if flag == "file_upload" or flag == "folder_upload":
+            df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], var))
+            df = df.loc[:, ~df.columns.str.contains('Unnamed')]
+            return render_template("pages/startDensenets.html", data_frame=df.to_html())
+        return render_template("pages/startDensenets.html")
 
 @app.route("/showPreProcessing", methods=['GET', 'POST'])
 def showPreProcessing():
@@ -156,6 +164,14 @@ def showPreProcessing():
             return render_template("pages/process_snake.html", data_frame=df.to_html())
         return render_template("pages/process_snake.html")
 
+    if model == 'hilbert-dn':
+        if pre_var == "Processed_Dataset.npy":
+            print(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
+            df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
+            df = df.loc[:, ~df.columns.str.contains('Unnamed')]
+            return render_template("pages/process_snake.html", data_frame=df.to_html())
+        return render_template("pages/process_snake.html")
+
 
 @app.route("/showClassification", methods=['GET', 'POST'])
 def showClassification():
@@ -166,6 +182,13 @@ def showClassification():
             return render_template("pages/densenet_prediction.html", result=df.to_html())
         return render_template("pages/densenet_prediction.html")
     if model == 'lstm':
+        if result == "prediction_result.csv":
+            df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
+            df = df.loc[:, ~df.columns.str.contains('Unnamed')]
+            return render_template("pages/densenet_prediction.html", result=df.to_html())
+        return render_template("pages/densenet_prediction.html")
+
+    if model == 'hilbert-dn':
         if result == "prediction_result.csv":
             df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
             df = df.loc[:, ~df.columns.str.contains('Unnamed')]
@@ -199,6 +222,17 @@ def pre_process():
         np.save(os.path.join(app.config['UPLOAD_FOLDER'], pre_var), array_tesnor)
         return render_template("pages/process_snake.html", array_snake=array_tesnor)
 
+    if model == "hilbert-dn":
+        df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], var))
+        df = df.loc[:, ~df.columns.str.contains('Unnamed')]
+
+        mscripts.script.hilbert(df)
+        os.system('Rscript hilbert/hilbert_data_safeicu.R')
+
+        array_tesnor = "Saved files and made hilbert curves"
+
+
+        return render_template("pages/process_snake.html", array_snake=array_tesnor)
 
 
 @app.route("/predict", methods=['GET', 'POST'])
@@ -533,6 +567,10 @@ def download_result():
 @app.route("/prediction")
 def prediction():
     global result
+    if result == "prediction_result.csv":
+        new_data = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
+        return render_template("pages/densenet_prediction.html", result=new_data.to_html())
+
     if model == 'snake-dn':
         array1 = np.load(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
         # print(array1)
@@ -555,7 +593,6 @@ def prediction():
                                  " Predicted Label": [predicted_output]})
         print(new_data)
         # new_data = new_data.append({filename: predicted_output})
-        global result
         result = "prediction_result.csv"
         new_data.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
         return render_template("pages/densenet_prediction.html", result=new_data.to_html())
@@ -616,8 +653,48 @@ def prediction():
         return render_template("pages/densenet_prediction.html", result=new_data.to_html())
 
     if model == "hilbert-dn":
-        pass
 
+        path_tr = 'hilbert/'
+
+        X_tr1 = pd.read_csv(path_tr+"dia_hilbert.csv")
+        X_tr2 = pd.read_csv(path_tr+"hr_hilbert.csv")
+        X_tr3 = pd.read_csv(path_tr+"rr_hilbert.csv")
+        X_tr4 = pd.read_csv(path_tr+"spo_hilbert.csv")
+        X_tr5 = pd.read_csv(path_tr+"sys_hilbert.csv")
+
+        X_tr = np.dstack((np.array(X_tr1), np.array(X_tr2), np.array(X_tr3), np.array(X_tr4), np.array(X_tr5)))
+
+        img_height = 16
+        img_width = 16
+
+        X_tr = np.reshape(X_tr,(-1,img_height, img_width, 5))
+
+        X_tr = np.array(X_tr)
+        X_tr = np.pad(X_tr, ((0,0), (7,7), (7,7), (0,0)), mode='constant')
+
+
+        img_height = 30
+        img_width = 30
+
+        mean_calc1 = np.load('mean_std/Shock'+pred_time+'hr/mean_calc'+pred_time+'hr.csv.npy')
+        std_calc1 = np.load('mean_std/Shock'+pred_time+'hr/std_calc'+pred_time+'hr.csv.npy')
+
+        X_tr -= mean_calc1
+        X_tr /= (std_calc1 + K.epsilon())
+
+        predicted_output = mscripts.hilbert_predictions.predict(X_tr,pred_time)
+        filename = dn_filename
+        # new_data = pd.DataFrame(columns=['Patient ID', 'Predicted Label'])
+        # new_data["Patient ID"] = filename
+        # new_data["Predicted Label"] = predicted_output
+        new_data = pd.DataFrame({"Patient ID ": [filename],
+                                 " Predicted Label": [predicted_output]})
+        print(new_data)
+        # new_data = new_data.append({filename: predicted_output})
+        
+        result = "prediction_result.csv"
+        new_data.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
+        return render_template("pages/densenet_prediction.html", result=new_data.to_html())
 
 # ----------------------------------------------------------------------------#
 # Launch.
