@@ -558,16 +558,43 @@ def prediction():
     if model == "lstm":
         array1 = np.load(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
 
-        # mean_1 = np.load('mean_std/Shock'+pred_time+'hr/mean.npy')
-        # mean_1 = np.load('mean_std/Shock'+pred_time+'hr/mean.npy')
-        # mean_1 = np.load('mean_std/Shock'+pred_time+'hr/mean.npy')
-        # mean_1 = np.load('mean_std/Shock'+pred_time+'hr/mean.npy')
-        # std_calc1 = np.load('mean_std/Shock'+pred_time+'hr/std.npy')
-
-        # x -= mean_calc1
-        # # Apply featurewise_std_normalization to test-data with statistics from train data
-        # x /= (std_calc1 + k_backend.epsilon())
         x = array1
+
+        print(x,x.shape)
+
+        mean_1 = np.load('mean_std/Shock'+pred_time+'hr/mean_hr_tr.npy')
+        mean_2 = np.load('mean_std/Shock'+pred_time+'hr/mean_resp_tr.npy')
+        mean_3 = np.load('mean_std/Shock'+pred_time+'hr/mean_sp_tr.npy')
+        mean_4 = np.load('mean_std/Shock'+pred_time+'hr/mean_sys_tr.npy')
+        mean_5 = np.load('mean_std/Shock'+pred_time+'hr/mean_dias_tr.npy')
+
+        std_1 = np.load('mean_std/Shock'+pred_time+'hr/std_hr_tr.npy')
+        std_2 = np.load('mean_std/Shock'+pred_time+'hr/std_resp_tr.npy')
+        std_3 = np.load('mean_std/Shock'+pred_time+'hr/std_sp_tr.npy')
+        std_4 = np.load('mean_std/Shock'+pred_time+'hr/std_sys_tr.npy')
+        std_5 = np.load('mean_std/Shock'+pred_time+'hr/std_dias_tr.npy')
+
+        x_1 = x[0,:]
+        x_2 = x[1,:]
+        x_3 = x[2,:]
+        x_4 = x[3,:]
+        x_5 = x[4,:]
+        
+        x_1 = (x_1 - mean_1)/(std_1)
+        x_2 = (x_2 - mean_2)/(std_2)
+        x_3 = (x_3 - mean_3)/(std_3)
+        x_4 = (x_4 - mean_4)/(std_4)
+        x_5 = (x_5 - mean_5)/(std_5)
+
+        x[0] = x_1
+        x[1] = x_2
+        x[2] = x_3
+        x[3] = x_4
+        x[4] = x_5
+
+        print(x,x.shape)
+
+
         x = np.reshape(x,(1,x.shape[0],x.shape[1]))
         predicted_output = mscripts.lstm_predictions.predict(x,pred_time)
         filename = dn_filename
@@ -582,6 +609,9 @@ def prediction():
         result = "prediction_result.csv"
         new_data.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
         return render_template("pages/densenet_prediction.html", result=new_data.to_html())
+
+    if model == "hilbert-dn":
+        pass
 
 
 # ----------------------------------------------------------------------------#
