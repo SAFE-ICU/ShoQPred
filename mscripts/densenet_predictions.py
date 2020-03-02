@@ -113,12 +113,12 @@ def DenseNet(blocks=[6, 12, 24, 16]):
     model = models.Model(inputs, x, name='densenet121')
     return model
 
-
-def predict(x):
+def predict(x,pred_time,age,gender):
     model = DenseNet()
     adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
-    model.load_weights("weights-snake-loop-model_0.hdf5")
+    model.load_weights('weights/Shock_4.5hr_snake_densenet/model_checkpoints_snake/weights-snake-loop-model_1.hdf5')
+    
     global graph
     graph = tf.get_default_graph()
     with graph.as_default():
@@ -128,6 +128,27 @@ def predict(x):
     print(result)
     return result
 
+def predict_new(x,pred_time,age,gender):
+    model = DenseNet()
+    adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
+    model.load_weights('weights/Shock_4.5hr_snake_densenet/model_checkpoints_snake/weights-snake-loop-model_1.hdf5')
+    
+   
+    intermediate_layer_model = Model(inputs=model.input, outputs= model.layers[-2].output)
+    result = intermediate_layer_model.predict(x)
+    print(result,age,gender,result.shape)
+    demo = (int(age),int(gender))
+    demo = np.reshape(demo,(1,2))
+    result = np.concatenate((result, demo), axis = 1)
+
+    print(result)
+
+    print(result,result.shape)
+    with open('weights/Shock_4.5hr_snake_densenet/model_checkpoints_snake/mimic+snake+age+gender+final.pkl', 'rb') as f:
+        clf = pickle.load(f,encoding='latin1')
+    result = clf.predict_proba(result)
+    return result[0,1]
 
 
 

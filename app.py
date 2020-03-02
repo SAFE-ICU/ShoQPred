@@ -262,7 +262,7 @@ def predict():
         # new_data = new_data.append({filename: predicted_output})
         result = "prediction_result.csv"
         new_data.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
-        return render_template("pages/densenet_prediction.html", result=new_data.to_html())
+        return render_template("pages/densenet_prediction.html", result=new_data.to_html(), shock=predicted_output*1000, ns = (1-predicted_output)*1000)
 
     df = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
     df = df.loc[:, ~df.columns.str.contains('Unnamed')]
@@ -567,10 +567,6 @@ def download_result():
 @app.route("/prediction")
 def prediction():
     global result
-    if result == "prediction_result.csv":
-        new_data = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
-        return render_template("pages/densenet_prediction.html", result=new_data.to_html())
-
     if model == 'snake-dn':
         array1 = np.load(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
         # print(array1)
@@ -584,7 +580,7 @@ def prediction():
         # Apply featurewise_std_normalization to test-data with statistics from train data
         x /= (std_calc1 + k_backend.epsilon())
 
-        predicted_output = mscripts.densenet_predictions.predict(x)
+        predicted_output = mscripts.densenet_predictions.predict(x,pred_time,age,gender)
         filename = dn_filename
         # new_data = pd.DataFrame(columns=['Patient ID', 'Predicted Label'])
         # new_data["Patient ID"] = filename
@@ -595,7 +591,7 @@ def prediction():
         # new_data = new_data.append({filename: predicted_output})
         result = "prediction_result.csv"
         new_data.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
-        return render_template("pages/densenet_prediction.html", result=new_data.to_html())
+        return render_template("pages/densenet_prediction.html", result=new_data.to_html(), shock=predicted_output*1000, ns = (1-predicted_output)*1000)
 
     if model == "lstm":
         array1 = np.load(os.path.join(app.config['UPLOAD_FOLDER'], pre_var))
@@ -650,7 +646,7 @@ def prediction():
         
         result = "prediction_result.csv"
         new_data.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
-        return render_template("pages/densenet_prediction.html", result=new_data.to_html())
+        return render_template("pages/densenet_prediction.html", result=new_data.to_html(), shock=predicted_output*1000, ns = (1-predicted_output)*1000)
 
     if model == "hilbert-dn":
 
@@ -682,7 +678,7 @@ def prediction():
         X_tr -= mean_calc1
         X_tr /= (std_calc1 + K.epsilon())
 
-        predicted_output = mscripts.hilbert_predictions.predict(X_tr,pred_time)
+        predicted_output = mscripts.hilbert_predictions.predict(X_tr,pred_time,age,gender)
         filename = dn_filename
         # new_data = pd.DataFrame(columns=['Patient ID', 'Predicted Label'])
         # new_data["Patient ID"] = filename
@@ -694,7 +690,7 @@ def prediction():
         
         result = "prediction_result.csv"
         new_data.to_csv(os.path.join(app.config['UPLOAD_FOLDER'], result))
-        return render_template("pages/densenet_prediction.html", result=new_data.to_html())
+        return render_template("pages/densenet_prediction.html", result=new_data.to_html(), shock=predicted_output*1000, ns = (1-predicted_output)*1000)
 
 # ----------------------------------------------------------------------------#
 # Launch.

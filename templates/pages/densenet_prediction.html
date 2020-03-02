@@ -88,6 +88,40 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Raleway", sans-serif}
        <a href="http://localhost:5000/download_result" onclick="w3_close()" class="w3-button w3-black w3-right buttonRound">Download<i class="fa  fa-download fa-fw w3-margin-left"></i></a>
        <br><br>
        {{result | safe}}
+       <div id="myPie"></div>
+
+<script src="http://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+<!-- <script src="https://d3js.org/d3-selection.v1.js"></script> -->
+ 
+<script src="static/js/d3pie.js"></script>
+<script src="static/js/d3.v4.min.js"></script>
+<script>
+    var pie = new d3pie("myPie", {
+    header: {
+        title: {
+            text: "Shock Probablities"
+        }
+    },
+    data: {
+        content: [
+            { label: "Shock", value: parseFloat("{{ shock | safe}}") },
+            { label: "Non-Shcok", value: parseFloat("{{ ns | safe}}") },
+        ]
+     },
+ 
+    //Here further operations/animations can be added like click event, cut out the clicked pie section.
+     callbacks: {
+        onMouseoverSegment: function(info) {
+            console.log("mouse in", info);
+        },
+        onMouseoutSegment: function(info) {
+            console.log("mouseout:", info);
+        }
+    }
+      
+});
+ 
+</script>
    </div>
 
 </div>
