@@ -64,7 +64,7 @@ body {font-family: "Lato", sans-serif}
             <li {% if request.endpoint == 'home' %} class="active" {% endif %}><a href="{{ url_for('home') }}">Home</a></li>
             <li {% if request.endpoint == 'demo' %} class="active" {% endif %}><a href="{{ url_for('demo') }}">Demonstration</a></li>
             <li {% if request.endpoint == 'authors' %} class="active" {% endif %}><a href="{{ url_for('authors') }}">Authors</a></li>
-            <li class="dropdown">
+            <!-- <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
               <ul class="dropdown-menu">
                 <li><a>Profile</a></li>
@@ -75,7 +75,7 @@ body {font-family: "Lato", sans-serif}
           </ul>
           <ul class="nav navbar-nav pull-right">
             <li><a href="{{ url_for('register') }}">Signup</a></li>
-            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('login') }}">Login</a></li> -->
           </ul>
         </div><!--/.nav-collapse -->
       </div>

@@ -1,16 +1,16 @@
-
-import pandas as pd
-import numpy as np
-
-import os
-
 import warnings
 import keras
 from keras import layers
 from keras import models
 from keras import backend
-import tensorflow as tf
 
+import pickle
+import tensorflow as tf
+from keras import backend as K
+from keras.models import *
+from keras.layers import *
+
+from sklearn.linear_model import LogisticRegression
 
 def dense_block(x, blocks, name):
     """A dense block.
@@ -73,15 +73,14 @@ def conv_block(x, growth_rate, name):
     x = layers.Concatenate(axis=bn_axis, name=name + '_concat')([x, x1])
     return x
 
-
-img_height = 30
-img_width = 30
+img_height, img_width = 30, 30
 
 
 def DenseNet(blocks=[6, 12, 24, 16]):
+    
     input_shape = [img_height, img_width, 5]
     img_input = layers.Input(shape=input_shape)
-
+    
     bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
 
     x = layers.ZeroPadding2D(padding=((3, 3), (3, 3)))(img_input)
@@ -90,7 +89,7 @@ def DenseNet(blocks=[6, 12, 24, 16]):
         axis=bn_axis, epsilon=1.001e-5, name='conv1/bn')(x)
     x = layers.Activation('relu', name='conv1/relu')(x)
     x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)))(x)
-    x = layers.MaxPooling2D(3, strides=2, name='pool1')(x)
+    x = layers.MaxPooling2D(3, strides=2, name='pool1',dim_ordering="th" )(x)
 
     x = dense_block(x, blocks[0], name='conv2')
     x = transition_block(x, 0.5, name='pool2')
@@ -113,7 +112,9 @@ def DenseNet(blocks=[6, 12, 24, 16]):
     model = models.Model(inputs, x, name='densenet121')
     return model
 
-def predict(x,pred_time,age,gender):
+
+
+def predict_old(x,pred_time,age,gender):
     model = DenseNet()
     adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
@@ -128,7 +129,7 @@ def predict(x,pred_time,age,gender):
     print(result)
     return result
 
-def predict_new(x,pred_time,age,gender):
+def predict(x,pred_time,age,gender):
     model = DenseNet()
     adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
     model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
@@ -147,6 +148,7 @@ def predict_new(x,pred_time,age,gender):
     print(result,result.shape)
     with open('weights/Shock_4.5hr_snake_densenet/model_checkpoints_snake/mimic+snake+age+gender+final.pkl', 'rb') as f:
         clf = pickle.load(f,encoding='latin1')
+    # clf = joblib.load('weights/Shock_4.5hr_snake_densenet/model_checkpoints_snake/mimic+snake+age+gender+final.pkl')
     result = clf.predict_proba(result)
     return result[0,1]
 

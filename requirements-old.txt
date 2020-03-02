@@ -1,0 +1,11 @@
+Fabric
+Flask-SQLAlchemy
+Flask-WTF
+WTForms
+coverage
+keras
+tensorflow
+scikit-learn
+# ecdsa
+# paramiko
+# pycrypto
