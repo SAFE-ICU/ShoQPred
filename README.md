@@ -7,8 +7,9 @@ ShoQPred is Deployable Human Centric Software Suite for hemodynamic shock predic
 1. Flask
 2. Tensorflow
 3. R with HilberVis
+(extended requirements in requirements.txt)
 
-extended requirements in requirements.txt
+or Docker for Docker deployment
 
 ## Deployment
 ### Docker 
@@ -21,6 +22,7 @@ App will run on localhost:5000
 
 ### Native Python
 Native System Deployment Reqirements
+
 System must have:-
 1. R 3.6+ with HilberVis package
 2. Tensorflow 1.15, Keras 2.35+
@@ -34,3 +36,7 @@ git clone https://github.com/SAFE-ICU/ShoQPred
 pip3 install -r requirements.txt
 python3 app.py
 ```
+
+
+
+Sample input files are available in sample data.
