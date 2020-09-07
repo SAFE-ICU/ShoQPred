@@ -31,7 +31,7 @@ Install [R](https://cran.r-project.org/bin/windows/base/) 3.6+ and [HilbertVis](
 
 Clone the repository, install requirements and run app.
 
- ```bash
+```bash
 git clone https://github.com/SAFE-ICU/ShoQPred
 pip3 install -r requirements.txt
 python3 app.py
