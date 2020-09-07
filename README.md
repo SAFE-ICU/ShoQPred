@@ -13,7 +13,10 @@ or Docker for Docker deployment
 
 ## Deployment
 ### Docker 
-Readily available installation, user can pull the docker image from docker hub, here are the instruction to use it
+Readily available installation, user can pull the docker image from docker hub, here are the instruction to use it.
+
+Create DockerHub Account and login on docker command line using ```docker login```. Pull and run app.
+
 ```bash
 docker pull raptor4/shoqpred1:latest
 docker run --name shoqpred-app -p 5000:5000 raptor4/shoqpred1:latest
