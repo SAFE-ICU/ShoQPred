@@ -3,17 +3,14 @@ LABEL maintainer="Harsh Bandhey <raptor419heavy@gmail.com>"
 
 # install python
 
-RUN apt-get update && \
-  apt-get install -y software-properties-common && \
-  add-apt-repository ppa:jonathonf/python-3.6
 RUN apt-get update
 
-RUN apt-get install -y build-essential python3.6 python3.6-dev python3-pip python3.6-venv
+RUN apt-get install -y build-essential python3 python3-dev python3-pip python3-venv
 RUN apt-get install -y git
 
 # update pip
-RUN python3.6 -m pip install pip --upgrade
-RUN python3.6 -m pip install wheel
+RUN python3 -m pip install pip --upgrade
+RUN python3 -m pip install wheel
 
 # Set default locale
 ENV LANG C.UTF-8
@@ -33,6 +30,6 @@ RUN pip install -r requirements.txt
 
 EXPOSE 5000
 
-ENTRYPOINT [ "python" ] 
+ENTRYPOINT [ "python3" ] 
 
 CMD [ "app.py" ] 
