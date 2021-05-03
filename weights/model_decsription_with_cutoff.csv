@@ -1,0 +1,4 @@
+model_name,cutoff
+model_hsEWS.sav,0.439255095
+model1_hsEWS_retrained_mimic.sav,0.240855821
+model1_hsEWS_retrained_safeicu.sav,0.874690875
