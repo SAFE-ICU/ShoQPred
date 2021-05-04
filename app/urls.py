@@ -1,4 +1,5 @@
 from django.urls import path, re_path
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from app import views
 
 urlpatterns = [
@@ -15,3 +16,5 @@ urlpatterns = [
     path('download/<int:idx>/', views.download, name='download'),
     re_path(r'^.*\.html', views.pages, name='pages'),
 ]
+
+urlpatterns += staticfiles_urlpatterns()
