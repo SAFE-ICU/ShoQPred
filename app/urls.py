@@ -1,6 +1,7 @@
 from django.urls import path, re_path
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.conf.urls.static import static
 from app import views
+from core import settings
 
 urlpatterns = [
     path('', views.index, name='home'),
@@ -15,6 +16,4 @@ urlpatterns = [
     path('classify', views.classify, name='classify'),
     path('download/<int:idx>/', views.download, name='download'),
     re_path(r'^.*\.html', views.pages, name='pages'),
-]
-
-urlpatterns += staticfiles_urlpatterns()
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

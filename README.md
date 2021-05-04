@@ -4,9 +4,9 @@
 ShoQPred is Deployable Human Centric Software Suite for hemodynamic shock prediction which leverages AI and ML methods on physiological vitals time-series data to predict hemodynamic shock prediction upto 3 to 12 hours before the event.
 
 ## Requirements
-1. Flask
-2. Tensorflow
-3. R with HilberVis
+1. Python 3.6+ / Django
+2. Tsfresh
+3. Sklearn
 (extended requirements in requirements.txt)
 
 or Docker for Docker deployment
@@ -19,9 +19,9 @@ Create DockerHub Account and login on docker command line using ```docker login`
 
 ```bash
 docker pull raptor4/shoqpredxgb:latest
-docker run --name shoqpred-app -p 8000:8000 raptor4/shoqpredxgb:latest
+docker run --name shoqpred-app -p 5005:5005 raptor4/shoqpredxgb:latest
 ```
-App will run on localhost:5000
+App will run on localhost:5005
 
 ### Native Python
 Native System Deployment Reqirements
