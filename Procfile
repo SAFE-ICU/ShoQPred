@@ -1,1 +1,1 @@
-web: gunicorn core.wsgi --log-file=- 
+web: gunicorn --config gunicorn-heroku.py core.wsgi
