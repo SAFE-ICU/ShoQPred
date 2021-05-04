@@ -145,27 +145,26 @@ def classify(request):
 
         with open('weights/'+model+'.sav', "rb") as file:
             xgb = pickle.load(file)
-        # with open('weights/' + model + '_scaler.pkl', "rb") as file:
-        #     scaler = pickle.load(file)
-        # print(scaler)
-        # tsdf = scaler.transform(df)
-        tsdf = df
+        with open('weights/' + model + '_scaler.pkl', "rb") as file:
+            scaler = pickle.load(file)
+        scaler = scaler['5_fold_object']
         print(df)
-        tsdf = extract_features(tsdf, column_id='ID')
+        tsdf = extract_features(df, column_id='ID')
         tsdf = impute(tsdf)
         tsdf['age'] = age
         tsdf['gender'] = gender
         tsdf.columns = tsdf.columns.str.lower()
         tsdf = tsdf[feat]
         print(tsdf.shape)
-        # print(scaler)
-        # tsdf = scaler.transform(tsdf)
+        print(scaler)
+        tsdf = scaler.transform(tsdf)
         result = xgb.predict_proba(tsdf)
         result = result[0, 1]
         cutoff = pd.read_csv('weights/cutoff.csv')
         cutoff = cutoff[cutoff['model_name']==model][['cutoff']].iloc[0,0]
         new_data = pd.DataFrame({"Patient ID ": [df.iloc[0,0]],
                                  "Predicted Score": [result],
+                                 "Cutoff score": cutoff,
                                  "Predicted Label": ["Shock" if result>cutoff else "Non-Shock"]})
         print(new_data)
         # new_data = new_data.append({filename: predicted_output})
