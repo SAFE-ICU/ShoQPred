@@ -1,5 +1,5 @@
 bind = '0.0.0.0:5005'
-workers = 3
+workers = 1
 timeout = 120
 accesslog = '-'
 loglevel = 'debug'
