@@ -117,7 +117,7 @@ def preprocessing(request):
         spo2 = request.POST['spo2_options_file']
         bp = request.POST['bp_options_file']
         bp_dias = request.POST['bp_dias_options_file']
-        cols = [pid, hr, resp, spo2, bp, bp_dias]
+        cols = [pid, spo2, hr, resp, bp, bp_dias]
         df = df[cols]
         df.columns = stdcol
         process = list(df.columns) == stdcol
