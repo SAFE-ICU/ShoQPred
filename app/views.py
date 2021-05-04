@@ -145,10 +145,13 @@ def classify(request):
 
         with open('weights/'+model+'.sav', "rb") as file:
             xgb = pickle.load(file)
-        # with open('weights/' + model + '_scaler.sav', "rb") as file:
+        # with open('weights/' + model + '_scaler.pkl', "rb") as file:
         #     scaler = pickle.load(file)
+        # print(scaler)
+        # tsdf = scaler.transform(df)
+        tsdf = df
         print(df)
-        tsdf = extract_features(df, column_id='ID')
+        tsdf = extract_features(tsdf, column_id='ID')
         tsdf = impute(tsdf)
         tsdf['age'] = age
         tsdf['gender'] = gender
