@@ -7,8 +7,6 @@ COPY core core
 COPY weights weights
 COPY staticfiles staticfiles
 
-RUN apt-get install python-software-properties -y
-RUN apt-add-repository ppa:nginx/stable
 RUN apt-get update
 RUN apt-get install nginx
 COPY nginx.conf /etc/nginx/sites-enable/default.org
