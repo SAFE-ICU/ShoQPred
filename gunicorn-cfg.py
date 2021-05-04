@@ -1,4 +1,5 @@
-bind = '0.0.0.0:5005'
+import os
+bind = '0.0.0.0:'+ str(os.environ.get('PORT'))
 workers = 1
 timeout = 120
 accesslog = '-'
