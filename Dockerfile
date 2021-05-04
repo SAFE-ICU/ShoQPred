@@ -11,13 +11,8 @@ COPY staticfiles staticfiles
 
 RUN pip install -r requirements.txt
 
-RUN apt-get update
-RUN apt-get install nginx -y
-COPY nginx.conf /etc/nginx/sites-enable/default.org
-RUN /etc/init.d/nginx restart
-
 RUN python manage.py makemigrations
 RUN python manage.py migrate
 
-EXPOSE 5005 8000
+EXPOSE 5005
 CMD ["gunicorn", "--config", "gunicorn-cfg.py", "core.wsgi"]
