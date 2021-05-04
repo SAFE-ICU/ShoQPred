@@ -134,19 +134,20 @@ def preprocessing(request):
     return HttpResponse(template.render(context, request))
 
 def classify(request):
+    global df
     global tsdf
     global new_data
     if not type(tsdf) == type(pd.DataFrame()):
         redirect(reverse('start'))
     else:
         tsdf.to_html()
-
     if not type(new_data)==type(pd.DataFrame()):
 
         with open('weights/'+model+'.sav', "rb") as file:
             xgb = pickle.load(file)
         # with open('weights/' + model + '_scaler.sav', "rb") as file:
         #     scaler = pickle.load(file)
+        print(df)
         tsdf = extract_features(df, column_id='ID')
         tsdf = impute(tsdf)
         tsdf['age'] = age
